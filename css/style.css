@@ -1,8 +1,8 @@
 body  {
 	font-family: "Arial";
 	background-color: #dddddd;
-}
-#canvas {
-	width: 780px;
-	height: 480px;
+	display: flex;
+	height: 100vh;
+	justify-content: center;
+	align-items: center;
 }
