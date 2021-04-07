@@ -79,7 +79,7 @@ class Character {
   drawImage() {
     let ctx = this.canvas.getContext("2d");
     let img = new Image();
-    img.src = this.images[this.state][0] + "/" + this.animateIndex + ".png"; 
+    img.src = this.images[this.state][0]  + this.animateIndex + ".png"; 
     //checkForJumping();
     if (img.complete) ctx.drawImage(img,this.x,this.y,img.width*this.scale,img.height*this.scale);
   }

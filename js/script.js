@@ -18,12 +18,12 @@ function init(){
 
 
 	Pepe = new Character(100,240,canvas,0.2);
-	Pepe.addState('Idle',"img/2.Pepe/1.Idle/Idle",10);
-	Pepe.addState('Long_Idle',"img/2.Pepe/1.Idle/Long_Idle",10);
-	Pepe.addState('Walk',"img/2.Pepe/2.Walk",6);
-	Pepe.addState('Jump',"img/2.Pepe/3.Jump",9);
-	Pepe.addState('Death',"img/2.Pepe/5.Death",7);
-	Pepe.addState('Death',"img/2.Pepe/5.Death",7);
+	Pepe.addState('Idle',"img/2.Pepe/1.Idle/Idle/I-",10);
+	Pepe.addState('Long_Idle',"img/2.Pepe/1.Idle/Long_Idle/I-1",10);
+	Pepe.addState('Walk',"img/2.Pepe/2.Walk/W-2",6);
+	Pepe.addState('Jump',"img/2.Pepe/3.Jump/J-3",9);
+	Pepe.addState('Injured',"img/2.Pepe/4.Injured/H-4",3);
+	Pepe.addState('Death',"img/2.Pepe/5.Death/D-5",7);
 	Pepe.setState('Idle');
 /*
 	Tito = new Character(400,330,canvas,0.1);
