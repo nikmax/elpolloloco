@@ -3,7 +3,7 @@ let bgScale = 0.5;
 let gameSpeed = 1;
 let clouds, mounts1,mounts2,mounts3;
 let Pepe, Tito, Pedro, Vito, Diego, Carlos;
-let isPause = true;
+let isPause = false;
 
 
 function init(){
@@ -46,11 +46,13 @@ function init(){
 */
 	draw();
 	listenForKeys();
+	Run(gameSpeed);
 }
 
 function draw(){
 	drawBackground();
 	Pepe.drawImage();
+	showHelp();
 	requestAnimationFrame(draw);
 }
 
@@ -68,8 +70,7 @@ function drawGround(){
 	mounts2.drawImage();
 	//Tito.drawImage();
 	mounts1.drawImage();
-ctx.font = "30px Arial";
-ctx.fillText("Pepe: " + Pepe.x, 10, 50);
+
 }
 
 function Run(speed = 1){
@@ -84,7 +85,10 @@ function Stop(){
 	mounts3.gameSpeed = 0;
 	Pepe.gameSpeed = 0;
 }
-
+function showHelp(){
+	ctx.font = "10px Arial";
+	ctx.fillText("Start/Stop: ESC, Pepe X,Y: " + Pepe.x + "," + Pepe.y, 10, 10);
+}
 /*
 function checkForJumping(){
 	if(isJumping){
@@ -112,10 +116,13 @@ function listenForKeys(){
 		let character = Pepe;
 		const k = e.key;
 
-		console.log(e);
-		if( e.code == 'Space'){
+		//console.log(e);
+		if( e.code == 'Escape'){
 			if(isPause) {Run(gameSpeed); isPause = false;}
 			else {Stop(); isPause = true;}
+		}
+		if( e.code == 'Space'){
+			character.jump();
 		}
 		if( k == 'ArrowRight'){
 			if(!isPause) character.move();
@@ -135,8 +142,12 @@ function listenForKeys(){
 		if( k == 'ArrowUp'){
 			//character.isJumping = false;
 		}
+		if( e.code == 'Space'){
+			character.nojump();
+		}
+
 	});
 	document.addEventListener("mousedown", e => {
-		console.log(e.path);
+		//console.log(e.path);
 	});
 }
