@@ -7,46 +7,28 @@ let background,clouds, mounts1,mounts2,mounts3;
 let Pepe, Tito, Pedro, Vito, Diego, Carlos;
 let isPause = false;
 let coins = new Array();
+let huehnchen = new Array();
 let colission = false;
 let collisionobj = 0;
+let start_sound;
 
 /**
  * general initialize function
  */
 function init(){
+	start_sound = new Audio('sounds/start.flac');
 	canvas = document.getElementById("canvas");
 	ctx = canvas.getContext("2d");
 	initBackgrounds(0.2);
 	initPepe();
-	/*
-	Tito = new Character(400,330,canvas,0.1);
-	Tito.addState('Idle',"img/2.Pepe/1.Idle/Idle",10);
-	Tito.addState('Long_Idle',"img/2.Pepe/1.Idle/Long_Idle",10);
-	Tito.addState('Walk',"img/2.Pepe/2.Walk",6);
-	Tito.addState('Jump',"img/2.Pepe/3.Jump",9);
-	Tito.addState('Death',"img/2.Pepe/5.Death",7);
-	Tito.addState('Death',"img/2.Pepe/5.Death",7);
-	Tito.setState('Idle');
-
-	Pedro = new Character(620,350,canvas,0.07);
-	Pedro.addState('Idle',"img/2.Pepe/1.Idle/Idle",10);
-	Pedro.addState('Long_Idle',"img/2.Pepe/1.Idle/Long_Idle",10);
-	Pedro.addState('Walk',"img/2.Pepe/2.Walk",6);
-	Pedro.addState('Jump',"img/2.Pepe/3.Jump",9);
-	Pedro.addState('Death',"img/2.Pepe/5.Death",7);
-	Pedro.addState('Death',"img/2.Pepe/5.Death",7);
-	Pedro.setState('Idle');
-		*/
-	coins.push(initCoin('coin',1000,250));
-	coins.push(initCoin('coin',2000,250));
-	coins.push(initCoin('coin',2100,260));
-	coins.push(initCoin('coin',2200,270));
-	
+	//coins.push(initCoin('coin',1000,250));
+	huehnchen.push(initHuehnchen('run',100,250));
 	draw();
 	listenForKeys();
 	Run(gameSpeed);
 	setInterval(animate,20);
-
+	start_sound.load();
+	//start_sound.play();
 }
 function animate(){
 	GameX += gameSpeed;
@@ -85,6 +67,11 @@ function initBackgrounds(wind){
 	clouds  = new BgImage("img/5.BG/Pics/4.Clouds",canvas,0.3);
 	clouds.gameSpeed = wind;
 }
+function initHuehnchen(type,x,y){
+	let huhn = new Character(x,y,canvas,0.3, 20); // speed 20 is equal to bgImages
+	huhn.addState(type,"img/3.Huehnchen/h-",3);
+	return huhn;
+}
 function initCoin(type,x,y){
 	//let coin = new Character(); 
 	let coin = new Character(x,y,canvas,0.3, 20); // speed 20 is equal to bgImages
@@ -105,7 +92,7 @@ function draw(){
 	ctx.drawImage(background,0,0,canvas.width,background.height*canvas.width/background.width);
 	//this.ctx.drawImage(bg,x,0,this.width,bg.height * this.width / bg.width);
 	drawGround();
-	drawCoins();
+	drawObject(huehnchen);
 	Pepe.drawImage();
 	showHelp();
 	requestAnimationFrame(draw);
@@ -118,7 +105,7 @@ function drawGround(){
 	//Tito.drawImage();
 	mounts1.drawImage();
 }
-function drawCoins(){
+function drawObject(coins){
 	if (Object.keys(coins).length > 0){
 		for(let i = 0; i < Object.keys(coins).length; i++) coins[i].drawImage();
 	}	
