@@ -22,11 +22,13 @@ class Character {
       this.images = new Array();   // array of array of state images
       this.state;
       this.isMovingLeft = false;
+      this.inverse = false; 
       this.isMovingTranslate = false;
       this.timestate = new Date().getTime();
       this.interval = 0;
       this.event;
       this.name= "";
+      this.showBorder = false;
 
       this.ctx = canvas.getContext("2d");
     }
@@ -177,19 +179,19 @@ class Character {
       this.width = img.width * this.scale;
       this.height = img.height *this.scale;
       //checkForJumping();
-      if(this.isMovingLeft) this.ctx.save();
-      if(this.isMovingLeft) this.ctx.scale(-1,1);
-      if(this.isMovingLeft) x = -this.x - img.width*this.scale;
+      if(this.isMovingLeft && !this.inverse) this.ctx.save();
+      if(this.isMovingLeft && !this.inverse) this.ctx.scale(-1,1);
+      if(this.isMovingLeft && !this.inverse) x = -this.x - img.width*this.scale;
       this.ctx.drawImage(img,x,this.y,img.width*this.scale,img.height*this.scale);//(this.canvas.height-this.height)-
-      /*
+     if (this.showBorder){ 
       this.ctx.beginPath();
       this.ctx.lineWidth = "1";
       this.ctx.strokeStyle = "red";
-      this.ctx.rect(x, (this.canvas.height-this.height)-this.y, img.width*this.scale, img.height*this.scale);
+      this.ctx.rect(x, this.y, img.width*this.scale, img.height*this.scale);
       this.ctx.stroke();
-      */
+     }
 
-      if(this.isMovingLeft) this.ctx.restore();
+      if(this.isMovingLeft && !this.inverse) this.ctx.restore();
       //if (this.name != "")
       //this.ctx.fillText(this.x + ", "+this.y, this.x, this.y);
     }
