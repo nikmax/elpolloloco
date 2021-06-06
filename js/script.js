@@ -6,7 +6,7 @@ let GameX = 0;
 let wind = 0.2;
 let background,clouds, mounts1,mounts2,mounts3, startbg, stopbg, lostbg;
 let Pepe, Tito, Pedro, Vito, Diego, Carlos;
-let PepesBottle;
+let PepesBottles;
 let isPause;
 let coins,chickens,bottles;
 let start_sound,collision_sound;
@@ -34,17 +34,19 @@ function init(){
 	gameStopped = true;
 	lifeBarsState = 100;
 	coinBarsState = 0;
-	bottleBarsState = 0;
+	bottleBarsState = 10;
 	won = true;
 	isPause = false;
 	coins = new Array();
 	chickens = new Array();
 	bottles = new Array();
+	PepesBottles = new Array();
 	canvas = document.getElementById("canvas");
 	ctx = canvas.getContext("2d");
 	initBackgrounds(0.2);
 	initIntros();
 	initPepe();
+	PepesBottles.push();
 	initCoins(30);
 	initChickens(30);
 	initBottles(30);
@@ -63,13 +65,14 @@ function animate(){
 	animateObjects(coins);
 	animateObjects(chickens);
 	animateObjects(bottles);	
+	animateObjects(PepesBottles);
 	checkForGameOver();
 }
-function checkForCollision(coin){
-	return (Pepe.x + Pepe.width > coin.x &&
-			Pepe.y +Pepe.height > coin.y &&
-			Pepe.x < coin.x &&
-			Pepe.y + Pepe.height/2  < coin.y + coin.height);
+function checkForCollision(obj1,obj2){
+	return (obj1.x + obj1.width > obj2.x &&
+			obj1.y + obj1.height > obj2.y &&
+			obj1.x < obj2.x &&
+			obj1.y + obj1.height/2  < obj2.y + obj2.height);
 }
 function checkForGameOver(){
 	if((Pepe.x + Pepe.width) < 0){won = false;gameOver = true;return;}
@@ -130,7 +133,6 @@ function initCoin(x,y){
 	return coin;
 }
 function initBottles(count){
-
 	let x = 1000;
 	for (let i = 0; i < count; i++){
 		x += Math.floor(Math.random() * (500) )+100;
@@ -180,6 +182,7 @@ function draw(){
 		drawObjects(coins);
 		drawObjects(chickens);
 		drawObjects(bottles);
+		drawObjects(PepesBottles);
 		Pepe.drawImage();
 		showHelp();
 		if(gameOver){
@@ -221,7 +224,9 @@ function animateObjects(objs){
 		if (Object.keys(objs).length > 0){
 		for(let i = 0; i < Object.keys(objs).length; i++){
 		 objs[i].animate(gameSpeed);
-		 if (checkForCollision(objs[i])) {
+		 if (objs == PepesBottles){
+		 	animateBottles(i);
+		 }else if (checkForCollision(Pepe,objs[i])) {
 		 		if (objs == chickens){
 		 			if(!Pepe.isJumping && !objs[i].isDeath){
 					 lifeBarsState -= 10;
@@ -249,6 +254,23 @@ function animateObjects(objs){
 		}
 	}
 }
+function animateBottles(b){
+		if (Object.keys(chickens).length > 0){
+			for(let i = 0; i < Object.keys(chickens).length; i++){
+			 chickens[i].animate(gameSpeed);
+			 if(PepesBottles[b].isJumping == false) {PepesBottles.splice(b,1);return;}
+			 else {
+			 		PepesBottles[b].ybevorejump = 415;	 
+     				 if (checkForCollision(PepesBottles[b],chickens[i])) {
+					 		chickens.splice(i,1);
+							collision_sound.play();
+							PepesBottles[b].splice(b,1);
+							return;
+					 }
+			 }
+			}
+		}
+}
 function showHelp(){
 	let y = 10
 	ctx.font = y + "px Arial";
@@ -266,14 +288,16 @@ function showHelp(){
 	//drawBars(coinBars,chickens.length,6*y);
 }
 function FireBottle(){
-	let bottle = initBottle(Pepe.x+Pepe.width+1);
-	
-	//bottle.characterSpeed = 2;
-	bottle.isMoving = true;
-	bottle.jump();
-	bottles.push(bottle);
-	//bottle.nojump();
-	
+	if(bottleBarsState > 0){
+		bottleBarsState--;
+		let bottle = initBottle(Pepe.x+Pepe.width+1);
+		
+		bottle.y = 380;
+		bottle.isMoving = true;
+		bottle.jump(8);
+		PepesBottles.push(bottle);
+		bottle.stopJumping = true;
+	}	
 }
 function listenForKeys(){
 	document.addEventListener('click', e => {

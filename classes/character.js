@@ -3,7 +3,7 @@ class Character {
       this.t = t;  // best performace for character cinema is 20
       this.m = 10;  // 200 is speed game einheit  also 200 / 20 = 10
       this.characterSpeed = 5;
-      this.jumpSpeed = 5;
+      this.jumpSpeed = 3;
       this.gameSpeed = 0;
       this.longidle = 1000 * 10;
       this.canvas = canvas;
@@ -76,15 +76,17 @@ class Character {
         this.isMoving = false;
         //this.setState("Idle");
     }
-    jump(){
+    jump(jumpheight=3){
         if(!this.isInjured){
           this.isJumping = true;
           this.stopJumping = false;
+          this.jumpheight = jumpheight;
         }
     }
-    _jump(jumpheight=6){
+    _jump(){
         if(!this.isInjured){
           this.jumpheight = jumpheight;
+          this.y -= jumpheight;
           this.isJumping = true;
           this.stopJumping = false;
         }
@@ -113,8 +115,10 @@ class Character {
             //this.setError('No Character States found'); return;
         } 
         this.interval++;
+        
         if(this.interval > this.m){     
           this.animateIndex++;
+          this.checkForFalling();
           this.interval = 0;
         }
         if(this.animateIndex == this.images[this.state].length){
@@ -122,34 +126,37 @@ class Character {
 
         }
         this.checkForNewState();
-        this.checkForFalling();
+        
         this.checkForEndFalling();
   
         if(this.isJumping){
-          if(this.isFalling) {
-            this.y += this.jumpSpeed - gameSpeed;
+          //if(this.isFalling) {
+          //  this.y += this.jumpSpeed - gameSpeed;
+          //  this.x += this.xbevorejump - gameSpeed;
+          //}else{
+            this.y += this.jumpSpeed;// - gameSpeed;
             this.x += this.xbevorejump - gameSpeed;
-          }else{
-            this.y -= this.jumpSpeed - gameSpeed;
-            this.x += this.xbevorejump - gameSpeed;
-          }
+          //}
         }else if(this.isMoving)  {
           this.x += this.characterSpeed - gameSpeed;
         }else this.x -= gameSpeed;  
     }
     checkForFalling(){
-      if(this.isJumping && !this.isFalling && this.animateIndex > (this.images['Jump'].length/2)) {
-        this.isFalling = true;
+      
+      if(this.isJumping){// && !this.isFalling && this.animateIndex > (this.images['Jump'].length/2)) {
+        this.jumpSpeed++;
+        if(this.jumpSpeed > 0)  this.isFalling = true;
       }
     }
     checkForEndFalling(){
       if(this.isFalling) {
         if(this.ybevorejump > this.y){
-          if(this.animateIndex < this.images['Jump'].length) {this.animateIndex = this.images['Jump'].length-1};
+          //if(this.animateIndex < this.images['Jump'].length) {this.animateIndex = this.images['Jump'].length-1};
         }else{
           this.isFalling = false;
           if(this.stopJumping) this.isJumping = false;
           this.y = this.ybevorejump;
+          this.jumpSpeed = -this.jumpheight;
         }
       }
     }
@@ -170,6 +177,7 @@ class Character {
       // initial Jump
       if(this.state != "Jump"){
         this.ybevorejump = this.y;
+        this.jumpSpeed -= this.jumpheight;
         if(this.isMoving) this.xbevorejump = this.characterSpeed;
         else this.xbevorejump = 0;
         this.setState("Jump");
