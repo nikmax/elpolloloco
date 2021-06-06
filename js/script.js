@@ -4,45 +4,51 @@ let gameSpeed = 1;
 let gameLevel = 1;
 let GameX = 0;
 let wind = 0.2;
-let background,clouds, mounts1,mounts2,mounts3;
+let background,clouds, mounts1,mounts2,mounts3, startbg, stopbg, lostbg;
 let Pepe, Tito, Pedro, Vito, Diego, Carlos;
-let isPause = true;
-let coins = new Array();
-let chickens = new Array();
-let bottles = new Array();
-let colission = false;
-let collisionobj = 0;
-let start_sound;
+let PepesBottle;
+let isPause;
+let coins,chickens,bottles;
+let start_sound,collision_sound;
 let ivl;
 let lifeBars = new Array();
 let coinBars = new Array();
 let bottleBars = new Array();
+let gameStopped;
+let gameOver;
+let won;
 
-let lifeBarsState = 100, coinBarsState = 0, bottleBarsState = 0;
+let lifeBarsState, coinBarsState, bottleBarsState;
 
 start_sound = new Audio('sounds/start.mp3');
 start_sound.load();
+collision_sound = new Audio('sounds/collision.mp3');
+collision_sound.load();
+
 
 /**
  * general initialize function
  */
 function init(){
+	gameOver = false;
+	gameStopped = true;
+	lifeBarsState = 100;
+	coinBarsState = 0;
+	bottleBarsState = 0;
+	won = true;
+	isPause = false;
+	coins = new Array();
+	chickens = new Array();
+	bottles = new Array();
 	canvas = document.getElementById("canvas");
 	ctx = canvas.getContext("2d");
 	initBackgrounds(0.2);
+	initIntros();
 	initPepe();
-	coins.push(initCoin(1000,250)); // x: 1000 - *, y: 200 - 300,  
-	coins.push(initCoin(1100,250));
-	coins.push(initCoin(1200,260));
-	coins.push(initCoin(1300,270));
-	chickens.push(initChicken(800,400,0.5));
-	chickens.push(initChicken(1800,400,0.5));
-	chickens.push(initChicken(2000,400,0.7));
-	chickens.push(initChicken(2400,400,0.5));
-	chickens.push(initChicken(2500,400,0.3));
-	initBottles(300);
+	initCoins(30);
+	initChickens(30);
+	initBottles(30);
 	initStatusBars(lifeBars,'Life');
-	initStatusBars(coinBars,'Coins');
 	initStatusBars(bottleBars,'Bottles');
 	draw();
 	listenForKeys();
@@ -57,12 +63,30 @@ function animate(){
 	animateObjects(coins);
 	animateObjects(chickens);
 	animateObjects(bottles);	
+	checkForGameOver();
 }
 function checkForCollision(coin){
 	return (Pepe.x + Pepe.width > coin.x &&
 			Pepe.y +Pepe.height > coin.y &&
 			Pepe.x < coin.x &&
 			Pepe.y + Pepe.height/2  < coin.y + coin.height);
+}
+function checkForGameOver(){
+	if((Pepe.x + Pepe.width) < 0){won = false;gameOver = true;return;}
+	if(lifeBarsState <= 0){won = false;gameOver = true;return;}
+	if(chickens.length > 0) return;
+	//if(coins.length > 0) return;
+	//if(bottles.length > 0) return;
+	
+	gameOver = true;
+}
+function initIntros(){
+	startbg = new Image();
+	startbg.src = "img/9.StartStop/StartScreen.png";
+	stopbg = new Image();
+	stopbg.src = "img/9.StartStop/3.GameOver.png";
+	lostbg = new Image();
+	lostbg.src = "img/9.StartStop/1.you_lost.png";
 }
 function initBackgrounds(wind){
 	background = new Image();
@@ -82,23 +106,44 @@ function initChicken(x,y,speed){
 	chicken.move(-speed);
 	return chicken;
 }
+function initChickens(count){
+	let x = 1000;
+	let z = Math.floor(Math.random());// * 0.8 )+0.1;
+	for (let i = 0; i < count; i++){
+		x += Math.floor(Math.random() * (500) )+100;
+		chickens.push(initChicken(x,400,Math.random()));
+	}
+}
+function initCoins(count){
+	//coins.push(initCoin(1000,250)); // x: 1000 - *, y: 200 - 300,  
+	let y = 0;
+	let x = 1000; 
+	for (let i = 0; i < count; i++){
+		x += Math.floor(Math.random() * (300) )+30;
+		y = Math.floor(Math.random() * (300) )+100;
+		coins.push(initCoin(x,y));
+	}
+}
 function initCoin(x,y){
 	let coin = new Character(x,y,canvas,0.3); // speed 20 is equal to bgImages
 	coin.addState('coin',"img/8.Coin/coin",2);//addState(type,"img/8.Coin/coin",2);
 	return coin;
 }
 function initBottles(count){
-	let min = 1000;
+
 	let x = 1000;
 	for (let i = 0; i < count; i++){
-		x += Math.floor(Math.random() * (1000) )+100;
+		x += Math.floor(Math.random() * (500) )+100;
 		bottles.push(initBottle(x));
 	}
 }
 function initBottle(x){
 	let bottle = new Character(x,415,canvas,0.15); 
 	let angle = Math.floor(Math.random()*2)+1;
-	bottle.addState('bottle',"img/6.Bottle/Angle"+angle+"/Angle",1);
+	bottle.addState('Idle',"img/6.Bottle/Angle"+angle+"/Angle",1);
+	bottle.addState('Jump',"img/6.Bottle/Spin/Spin",12);
+	bottle.addState('Injured',"img/6.Bottle/Splash/Splash",6);
+	bottle.setState('Idle');
 	return bottle;
 }
 function initStatusBars(bars,state){
@@ -126,14 +171,28 @@ function initPepe(){
 	Pepe.setState('Idle');
 }
 function draw(){
-	ctx.drawImage(background,0,0,canvas.width,background.height*canvas.width/background.width);
-	//this.ctx.drawImage(bg,x,0,this.width,bg.height * this.width / bg.width);
-	drawGround();
-	drawObjects(coins);
-	drawObjects(chickens);
-	drawObjects(bottles);
-	Pepe.drawImage();
-	showHelp();
+	if(gameStopped){
+		ctx.drawImage(startbg,0,0,canvas.width,startbg.height*canvas.width/startbg.width);
+	}else{
+		ctx.drawImage(background,0,0,canvas.width,background.height*canvas.width/background.width);
+		//this.ctx.drawImage(bg,x,0,this.width,bg.height * this.width / bg.width);
+		drawGround();
+		drawObjects(coins);
+		drawObjects(chickens);
+		drawObjects(bottles);
+		Pepe.drawImage();
+		showHelp();
+		if(gameOver){
+			clearInterval(ivl);
+			isPause = true;
+			if (won){
+				ctx.drawImage(stopbg,0,0,canvas.width,stopbg.height*canvas.width/stopbg.width);
+			}
+			else{
+				ctx.drawImage(lostbg,0,0,canvas.width,lostbg.height*canvas.width/lostbg.width);
+			}
+		}
+	}
 	requestAnimationFrame(draw);
 }
 function drawGround(){
@@ -156,7 +215,7 @@ function drawBars(bars,state,y){
 	else if(state > 59) st = 60;
 	else if(state > 39) st = 40;
 	else if(state > 0) st = 20;
-	ctx.drawImage(bars[st],10,y,bars[st].width*0.2,bars[st].height*0.2);
+	ctx.drawImage(bars[st],40,y,bars[st].width*0.2,bars[st].height*0.2);
 }
 function animateObjects(objs){
 		if (Object.keys(objs).length > 0){
@@ -164,15 +223,28 @@ function animateObjects(objs){
 		 objs[i].animate(gameSpeed);
 		 if (checkForCollision(objs[i])) {
 		 		if (objs == chickens){
-					 lifeBarsState--;
+		 			if(!Pepe.isJumping && !objs[i].isDeath){
+					 lifeBarsState -= 10;
 					 objs.splice(i,1);
+					 collision_sound.play();
+					 //Pepe.halt();
+					 Pepe.injure();
+					 //setTimeout(function(){Pepe.setState("Idle");},500);
+					}else if (Pepe.isFalling){
+						//k.o.
+						objs[i].death();
+						//objs.splice(i,1);
+					}
+
 				 }else if (objs == coins) {
-					coinBarsState++;
+					if (lifeBarsState != 100) lifeBarsState++;
 					objs.splice(i,1);
 				}else if (objs == bottles) {
 					bottleBarsState++;
 					objs.splice(i,1);
 				}
+		 }else if(objs[i].x+objs[i].width < 0){
+			objs.splice(i,1);  // destroy what you no more seen
 		 }
 		}
 	}
@@ -180,27 +252,48 @@ function animateObjects(objs){
 function showHelp(){
 	let y = 10
 	ctx.font = y + "px Arial";
-	ctx.fillText("Start/Stop: ESC", 10, y + 5);
-	ctx.fillText("Space: jump Pepe", 10, 2*y+5);
-	ctx.fillText("Arrows: move Pepe left / right", 10,  3*y +5);
-	ctx.fillText("Pepe X,Y: " + (GameX + Pepe.x) + "," + Pepe.y, 10, 4*y + 5);
-	ctx.fillText("Game X: " + GameX, 10, 5*y + 5);
-	ctx.fillText("Colissions: " + collisionobj, 10, 6*y + 5);
-	drawBars(lifeBars,lifeBarsState,7*y);
-	drawBars(coinBars,coinBarsState,8*y+20);
-	drawBars(bottleBars,bottleBarsState,9*y+40);
+
+	//ctx.fillText("Start/Stop: ESC", 10, y + 5);
+	//ctx.fillText("Space: jump Pepe", 10, 2*y+5);
+	//ctx.fillText("Arrows: move Pepe left / right", 10,  3*y +5);
+	
+	ctx.fillText(lifeBarsState+"x", 10, 4*y+ 3);
+	ctx.fillText(bottleBarsState+"x", 10, 6*y + 3);//ctx.fillText("Game X: " + GameX, 10, 5*y + 5);
+	//ctx.fillText(chickens.length+"x", 10, 8*y + 3);//ctx.fillText("Pepe X,Y: " + (GameX + Pepe.x) + "," + Pepe.y, 10, 4*y + 5);
+	
+	drawBars(lifeBars,lifeBarsState,2*y);
+	drawBars(bottleBars,bottleBarsState,4*y);
+	//drawBars(coinBars,chickens.length,6*y);
+}
+function FireBottle(){
+	let bottle = initBottle(Pepe.x+Pepe.width+1);
+	
+	//bottle.characterSpeed = 2;
+	bottle.isMoving = true;
+	bottle.jump();
+	bottles.push(bottle);
+	//bottle.nojump();
+	
 }
 function listenForKeys(){
+	document.addEventListener('click', e => {
+		if(!gameOver){
+			if(gameStopped) {ivl  = setInterval(animate,20);gameStopped = false;}
+			else if(isPause) {ivl  = setInterval(animate,20);isPause = false;}//start_sound.play();
+			else {clearInterval(ivl); isPause = true;start_sound.pause();}
+		}else location.reload();
+	});
 	document.addEventListener("keydown", e => {
 		let character = Pepe;
 		const k = e.key;
-
-		//console.log(e);
+		//console.log(e.code, k);
+		/*
 		if( e.code == 'Escape'){
 			if(isPause) {ivl  = setInterval(animate,20); isPause = false;}//start_sound.play();
 			else {clearInterval(ivl); isPause = true;start_sound.pause();}
 		}
-		if( e.code == 'Space'){
+		*/
+		if( k == 'ArrowUp'){
 			character.jump();
 		}
 		if( e.code == 'KeyX'){
@@ -214,6 +307,9 @@ function listenForKeys(){
 		if( k == 'ArrowLeft'){
 			if(!isPause) character.move(-1);
 		}
+		if( e.code == 'Space'){
+			FireBottle();
+		}
 	});
 	document.addEventListener("keyup", e => {
 		let character = Pepe;
@@ -225,7 +321,7 @@ function listenForKeys(){
 		if( k == 'ArrowLeft'){
 			character.halt();
 		}
-		if( e.code == 'Space'){
+		if( k == 'ArrowUp'){
 			character.nojump();
 		}
 

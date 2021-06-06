@@ -15,6 +15,9 @@ class Character {
       this.isJumping = false;
       this.isFalling = false;
       this.stopJumping = true;
+      this.isInjured = false;
+      this.isDeath = false;
+      this.jumpheight;
       this.ybevorejump = 0;
       this.xbevorejump = 0;
         this.scale = scale;
@@ -62,7 +65,7 @@ class Character {
         return true;
     }
     move(r = 1){ // '1' - right,  '-1' - left
-        if(!this.isJumping){  // Jump must be complete
+        if(!this.isJumping && !this.isInjured){  // Jump must be complete
               this.isMoving = true;
               this.characterSpeed = Math.abs(this.characterSpeed) * r;
               if(r > 0) this.isMovingLeft = false;
@@ -74,13 +77,31 @@ class Character {
         //this.setState("Idle");
     }
     jump(){
-        this.isJumping = true;
-        this.stopJumping = false
+        if(!this.isInjured){
+          this.isJumping = true;
+          this.stopJumping = false;
+        }
+    }
+    _jump(jumpheight=6){
+        if(!this.isInjured){
+          this.jumpheight = jumpheight;
+          this.isJumping = true;
+          this.stopJumping = false;
+        }
     }
     nojump(){
         this.stopJumping = true;
     }
-  
+    injure(){
+      this.isMoving = false;
+      this.isInjured = true;
+      let self = this;
+      setTimeout(function(){self.isInjured = false;},500);
+    }
+    death(){
+      this.isMoving = false;
+      this.isDeath = true;
+    }
     setError(err){
       if (this.error != err){
             this.error = err;
@@ -97,9 +118,10 @@ class Character {
           this.interval = 0;
         }
         if(this.animateIndex == this.images[this.state].length){
-          this.animateIndex = 0;							
+          this.animateIndex = 0;
+
         }
-        this.checkForNewState();  
+        this.checkForNewState();
         this.checkForFalling();
         this.checkForEndFalling();
   
@@ -135,8 +157,8 @@ class Character {
     checkForNewState(){
       if(this.isJumping)               this.doJump();
       else if(this.isMoving)           this.doMove();
-      else if(this.state == 'Injured') this.doInjured();
-      else if(this.state == 'Death')   this.doDeath();
+      else if(this.isInjured)          this.doInjured();
+      else if(this.isDeath)            this.doDeath();
       else if(this.state == 'Idle')    this.doIdle();
       else if(this.state != 'Long_Idle'){
         if(this.checkState("Idle")) this.setState("Idle"); // initial Idle
@@ -170,7 +192,9 @@ class Character {
     }
     doIdle(){
       let time = new Date().getTime();
-      if ((time - this.timestate) >= this.longidle) this.setState('Long_Idle');
+      if ((time - this.timestate) >= this.longidle){
+        if(this.checkState("Long_Idle")) this.setState('Long_Idle');
+      } 
     }
     drawImage() {
       let x = this.x;
