@@ -175,6 +175,9 @@ function initPepe(){
 function draw(){
 	if(gameStopped){
 		ctx.drawImage(startbg,0,0,canvas.width,startbg.height*canvas.width/startbg.width);
+		ctx.font = "16px Arial";
+		ctx.fillStyle = 'white';
+		ctx.fillText("Please click for begin ### Arrow left/rigth/up: move the Pepe ### Space: fire the bottle", 150, 530);
 	}else{
 		ctx.drawImage(background,0,0,canvas.width,background.height*canvas.width/background.width);
 		//this.ctx.drawImage(bg,x,0,this.width,bg.height * this.width / bg.width);
@@ -194,6 +197,10 @@ function draw(){
 			else{
 				ctx.drawImage(lostbg,0,0,canvas.width,lostbg.height*canvas.width/lostbg.width);
 			}
+			ctx.font = "16px Arial";
+			ctx.fillStyle = 'white';
+			ctx.fillText("Please click for new game", 400, 530);
+			
 		}
 	}
 	requestAnimationFrame(draw);
@@ -257,14 +264,15 @@ function animateObjects(objs){
 function animateBottles(b){
 		if (Object.keys(chickens).length > 0){
 			for(let i = 0; i < Object.keys(chickens).length; i++){
-			 chickens[i].animate(gameSpeed);
+			 //chickens[i].animate(gameSpeed);
 			 if(PepesBottles[b].isJumping == false) {PepesBottles.splice(b,1);return;}
 			 else {
 			 		PepesBottles[b].ybevorejump = 415;	 
-     				 if (checkForCollision(PepesBottles[b],chickens[i])) {
-					 		chickens.splice(i,1);
+     				 if (checkForCollision(PepesBottles[b],chickens[i]) && !chickens[i].isDeath) {
+					 		//chickens.splice(i,1);
+					 		chickens[i].death();
 							collision_sound.play();
-							PepesBottles[b].splice(b,1);
+							PepesBottles.splice(b,1);
 							return;
 					 }
 			 }
